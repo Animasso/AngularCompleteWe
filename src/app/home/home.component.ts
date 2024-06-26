@@ -12,7 +12,7 @@ import { PaginatorModule } from 'primeng/paginator';
   imports: [ProductComponent, CommonModule, PaginatorModule],
 })
 export class HomeComponent implements OnInit {
-  constructor(private productService: ProductsService) {}
+  constructor(private productsService: ProductsService) {}
   products: Product[] = [];
   totalRecords: number = 0;
   rows: number = 5;
@@ -21,14 +21,51 @@ export class HomeComponent implements OnInit {
   }
 
   fetchProducts(page: number, perPage: number) {
-    this.productService
+    this.productsService
       .getProducts('http://localhost:3000/clothes', { page, perPage })
-      .subscribe((products: Products) => {
-        this.products = products.items;
-        this.totalRecords = products.total;
+      .subscribe({
+        next: (data: Products) => {
+          this.products = data.items;
+          this.totalRecords = data.total;
+        },
+        error: (error) => {
+          console.log(error);
+        },
       });
   }
-
+  editProduct(product: Products, id: number) {
+    this.productsService
+      .editProduct(`https://localhost:3000/clothes/${id}`, product)
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+          this.fetchProducts(0, this.rows);
+        },
+        error: (err) => console.log(err),
+      });
+  }
+  deleteProduct(id: number) {
+    this.productsService
+      .deleteProduct(`https://localhost:3000/clothes/${id}`)
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+          this.fetchProducts(0, this.rows);
+        },
+        error: (err) => console.log(err),
+      });
+  }
+  addProduct(product: Products) {
+    this.productsService
+      .addProduct(`https://localhost:3000/clothes`, product)
+      .subscribe({
+        next: (data) => {
+          console.log(data);
+          this.fetchProducts(0, this.rows);
+        },
+        error: (err) => console.log(err),
+      });
+  }
   ngOnInit(): void {
     this.fetchProducts(0, this.rows);
   }
